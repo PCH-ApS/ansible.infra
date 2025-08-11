@@ -1,0 +1,30 @@
+---
+- name: CNAME | set vars
+  ansible.builtin.set_fact:
+    qname: "{{ rec.name }}.{{ zone_name }}"
+    target: "{{ rec.target }}"
+    ttl: "{{ rec.ttl | default(nsupdate_default_ttl) }}"
+
+- name: CNAME | current?
+  ansible.builtin.command: dig +short CNAME {{ qname }} @127.0.0.1
+  register: dig_cname
+  changed_when: false
+
+- name: CNAME | write update
+  when: dig_cname.stdout.strip() != target
+  ansible.builtin.copy:
+    dest: "/tmp/u-cname-{{ rec.name }}.txt"
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      server {{ nsupdate_server }}
+      zone {{ zone_name }}
+      update delete {{ qname }} CNAME
+      update add {{ qname }} {{ ttl }} CNAME {{ target }}
+      send
+
+- name: CNAME | apply update
+  when: dig_cname.stdout.strip() != target
+  ansible.builtin.command: nsupdate -k {{ nsupdate_keyfile }} -v /tmp/u-cname-{{ rec.name }}.txt
+  changed_when: true

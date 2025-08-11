@@ -1,0 +1,8 @@
+$TTL {{ zone_ttl }}
+@   IN SOA {{ zone_soa.mname }} {{ zone_soa.rname }} (
+        {{ zone_soa.serial }}
+        {{ zone_soa.refresh if zone_soa is defined else zone_soa.refresh }}
+        {{ zone_soa.retry   if zone_soa is defined else zone_soa.retry }}
+        {{ zone_soa.expire  if zone_soa is defined else zone_soa.expire }}
+        {{ zone_soa.minimum if zone_soa is defined else zone_soa.minimum }} )
+@   IN NS {{ zone_ns[0] }}

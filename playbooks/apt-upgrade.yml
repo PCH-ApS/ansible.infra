@@ -1,0 +1,61 @@
+---
+- name: Update & upgrade all apt-based hosts
+  hosts: apt_hosts
+  gather_facts: yes
+  serial: 1           # important for clusters like PVE: upgrade/reboot one at a time
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_facts.pkg_mgr == 'apt'
+      tags: [apt]
+
+    - name: Full distribution upgrade (kernel/security too)
+      ansible.builtin.apt:
+        upgrade: dist      # same as full-upgrade
+      when: ansible_facts.pkg_mgr == 'apt'
+      tags: [apt]
+
+    - name: Autoremove unused packages
+      ansible.builtin.apt:
+        autoremove: yes
+      when: ansible_facts.pkg_mgr == 'apt'
+      tags: [apt]
+
+    - name: Autoclean local repo of retrieved package files
+      ansible.builtin.apt:
+        autoclean: yes
+      when: ansible_facts.pkg_mgr == 'apt'
+      tags: [apt]
+
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+      tags: [reboot]
+
+    - name: Reboot if needed (waits for host to return)
+      ansible.builtin.reboot:
+        msg: "Reboot by Ansible after upgrades"
+        reboot_timeout: 1800
+      when:
+        - reboot_required.stat.exists
+        - (reboot_ok | default(true))   # you can set this false per-group/host
+      tags: [reboot]
+
+    - name: Run local SSH script against each PVE host
+      when: "'pve_hosts' in group_names"
+      delegate_to: localhost
+      become: false
+      vars:
+        pve_addr: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
+      command: >
+        {{ inventory_dir }}/files/pve/post-upgrade.sh
+        --host {{ pve_addr }}
+        --conf1 {{ inventory_dir }}/files/pve/conf1.yml
+        --conf2 {{ inventory_dir }}/files/pve/conf2.yml
+      changed_when: false

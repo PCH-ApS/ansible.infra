@@ -1,0 +1,19 @@
+---
+- name: Configure BIND9 DNS with DDNS + static records
+  hosts: dns_servers
+  gather_facts: yes
+  become: true
+
+  handlers:
+    - name: reload named
+      ansible.builtin.service:
+        name: "{{ bind_service }}"
+        state: reloaded
+
+    - name: restart named
+      ansible.builtin.service:
+        name: "{{ bind_service }}"
+        state: restarted
+
+  roles:
+    - dns_bind
