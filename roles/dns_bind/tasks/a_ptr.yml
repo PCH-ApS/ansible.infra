@@ -1,13 +1,18 @@
 ---
-# Derive per-record vars
-- name: A+PTR | set vars
+# Derive per-record vars (step 1)
+- name: A+PTR | set base vars
   ansible.builtin.set_fact:
     fqdn: "{{ rec.name }}.{{ zone_name }}"
     ip: "{{ rec.ip }}"
-    oct: "{{ rec.ip.split('.') }}"
-    rev_zone: "{{ oct[2] }}.{{ oct[1] }}.{{ oct[0] }}.in-addr.arpa"
-    ptr_label: "{{ oct[3] }}"
+    octets: "{{ rec.ip.split('.') }}"
     ttl: "{{ rec.ttl | default(nsupdate_default_ttl) }}"
+
+# Use the derived list (step 2)
+- name: A+PTR | set reverse vars
+  ansible.builtin.set_fact:
+    rev_zone: "{{ octets[2] }}.{{ octets[1] }}.{{ octets[0] }}.in-addr.arpa"
+    ptr_label: "{{ octets[3] }}"
+
 
 # Check current A
 - name: A+PTR | current A?

@@ -16,6 +16,14 @@
     - { path: "{{ bind_zone_dir }}" }
     - { path: "{{ bind_keys_dir }}", mode: "0750" }
 
+# NEW: allow bind to write journals/updated zones
+- name: Ensure dynamic zone dir is writable for bind
+  ansible.builtin.file:
+    path: "{{ bind_zone_dir }}"
+    owner: bind
+    group: bind
+    mode: "0770"
+
 # TSIG key file (from vault)
 - name: Write DDNS TSIG key for BIND
   ansible.builtin.copy:
@@ -54,9 +62,9 @@
   ansible.builtin.template:
     src: zone-seed-forward.j2
     dest: "{{ bind_zone_dir }}/db.{{ zone_name }}"
-    owner: root
+    owner: bind           # CHANGED
     group: bind
-    mode: "0640"
+    mode: "0660"          # CHANGED: allow bind to rewrite
     force: no
   register: seed_fwd
 
@@ -64,9 +72,9 @@
   ansible.builtin.template:
     src: zone-seed-reverse.j2
     dest: "{{ bind_zone_dir }}/db.{{ item }}.{{ reverse_base.split('.')[1] }}.{{ reverse_base.split('.')[0] }}"
-    owner: root
+    owner: bind           # CHANGED
     group: bind
-    mode: "0640"
+    mode: "0660"          # CHANGED
     force: no
   loop: "{{ reverse_octets }}"
   register: seed_rev
@@ -90,6 +98,13 @@
 
 # Apply config changes now
 - meta: flush_handlers
+
+# Make sure named is up before nsupdate/dig
+- name: Ensure DNS service is running (before nsupdate)
+  ansible.builtin.service:
+    name: "{{ bind_service }}"
+    state: started
+    enabled: true
 
 # --- "Static" records via nsupdate (idempotent) ---
 
