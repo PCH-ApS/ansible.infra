@@ -1,0 +1,19 @@
+---
+- name: Configure KEA DHCP with DDNS
+  hosts: dhcp_servers
+  gather_facts: yes
+  become: true
+
+  handlers:
+    - name: reload named
+      ansible.builtin.service:
+        name: "{{ bind_service }}"
+        state: reloaded
+
+    - name: restart named
+      ansible.builtin.service:
+        name: "{{ bind_service }}"
+        state: restarted
+
+  roles:
+    - dhcp_kea
