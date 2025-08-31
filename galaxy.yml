@@ -1,0 +1,12 @@
+namespace: pch            # choose a short unique namespace
+name: infra               # collection name
+version: 0.1.0
+readme: README.md
+authors:
+  - Nicolai Jensen
+description: Reusable infra roles for Ubuntu (DNS, DHCP, nginx, etc.)
+license: MIT
+tags: [ansible, ubuntu, dns, dhcp, nginx]
+dependencies:
+  community.general: ">=9.2.0,<10.0.0"
+  ansible.posix: ">=1.5.4,<2.0.0"
