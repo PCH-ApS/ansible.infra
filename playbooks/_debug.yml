@@ -1,4 +1,0 @@
-- hosts: dns_servers
-  gather_facts: false
-  tasks:
-    - debug: var=ddns_key_secret
