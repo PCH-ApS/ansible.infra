@@ -1,6 +1,6 @@
 namespace: pch            # choose a short unique namespace
 name: infra               # collection name
-version: 0.1.2
+version: 0.1.5
 readme: README.md
 authors:
   - Nicolai Jensen (PCH)
