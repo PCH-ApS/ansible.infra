@@ -3,7 +3,7 @@ name: infra               # collection name
 version: 0.1.0
 readme: README.md
 authors:
-  - Nicolai Jensen
+  - Nicolai Jensen (PCH)
 description: Reusable infra roles for Ubuntu (DNS, DHCP, nginx, etc.)
 license: MIT
 tags: [ansible, ubuntu, dns, dhcp, nginx]
