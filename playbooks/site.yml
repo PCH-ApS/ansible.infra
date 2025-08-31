@@ -1,5 +1,0 @@
-- hosts: dns_servers
-  roles: [dns_bind]
-
-- hosts: dhcp_servers
-  roles: [dhcp_kea]
